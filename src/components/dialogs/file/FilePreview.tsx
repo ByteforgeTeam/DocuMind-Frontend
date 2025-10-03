@@ -76,7 +76,7 @@ export function FilePreview({ file, isOpen, onOpenChange }: FilePreviewProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-8xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{file?.name}</DialogTitle>
         </DialogHeader>
