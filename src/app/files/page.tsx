@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,38 +29,52 @@ import {
 } from "lucide-react";
 import { Upload } from "./Controls/Upload";
 
+const FilePreview = dynamic(
+  () =>
+    import("@/components/dialogs/file/FilePreview").then((mod) => ({
+      default: mod.FilePreview,
+    })),
+  { ssr: false }
+);
+
 interface FileData {
   id: string;
   name: string;
   type: "PDF" | "DOCX" | "TXT";
   size: string;
   uploadedDate: string;
+  url?: string;
 }
 
 export default function FilesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [previewFile, setPreviewFile] = useState<FileData | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const [files, setFiles] = useState<FileData[]>([
     {
       id: "1",
-      name: "Document.pdf",
+      name: "sample-pdf-file.pdf",
       type: "PDF",
-      size: "2.4 MB",
-      uploadedDate: "2024-01-15",
+      size: "18 KB",
+      uploadedDate: "2025-10-03",
+      url: "/example-file/sample-pdf-file.pdf",
     },
     {
       id: "2",
-      name: "Report.docx",
+      name: "sample-docx-file.docx",
       type: "DOCX",
-      size: "1.2 MB",
-      uploadedDate: "2024-01-14",
+      size: "1.3 MB",
+      uploadedDate: "2025-10-03",
+      url: "/example-file/sample-docx-file.docx",
     },
     {
       id: "3",
-      name: "Notes.txt",
+      name: "sample-txt-file.txt",
       type: "TXT",
-      size: "45 KB",
-      uploadedDate: "2024-01-13",
+      size: "607 B",
+      uploadedDate: "2025-10-03",
+      url: "/example-file/sample-txt-file.txt",
     },
   ]);
 
@@ -72,7 +87,11 @@ export default function FilesPage() {
   };
 
   const handleViewDetails = (fileId: string) => {
-    console.log("View details for file:", fileId);
+    const file = files.find((f) => f.id === fileId);
+    if (file) {
+      setPreviewFile(file);
+      setIsPreviewOpen(true);
+    }
   };
 
   const handleDelete = (fileId: string) => {
@@ -201,6 +220,12 @@ export default function FilesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <FilePreview
+        file={previewFile}
+        isOpen={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
     </div>
   );
 }
