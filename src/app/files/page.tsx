@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
-  Upload,
   Search,
   MoreVertical,
   Eye,
@@ -27,6 +26,7 @@ import {
   FileText,
   File,
 } from "lucide-react";
+import { Upload } from "./Controls/Upload";
 
 interface FileData {
   id: string;
@@ -38,6 +38,7 @@ interface FileData {
 
 export default function FilesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+
   const [files, setFiles] = useState<FileData[]>([
     {
       id: "1",
@@ -66,35 +67,8 @@ export default function FilesPage() {
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFiles = event.target.files;
-    if (uploadedFiles) {
-      Array.from(uploadedFiles).forEach((file) => {
-        const fileExtension = file.name.split(".").pop()?.toUpperCase();
-        const fileType = ["PDF", "DOCX", "TXT"].includes(fileExtension || "")
-          ? (fileExtension as "PDF" | "DOCX" | "TXT")
-          : "TXT";
-
-        const newFile: FileData = {
-          id:
-            Date.now().toString() + Math.random().toString(36).substring(2, 11),
-          name: file.name,
-          type: fileType,
-          size: formatFileSize(file.size),
-          uploadedDate: new Date().toISOString().split("T")[0],
-        };
-
-        setFiles((prev) => [...prev, newFile]);
-      });
-    }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  const handleFileUpload = (newFiles: FileData[]) => {
+    setFiles((prev) => [...prev, ...newFiles]);
   };
 
   const handleViewDetails = (fileId: string) => {
@@ -140,22 +114,7 @@ export default function FilesPage() {
             Upload, manage, and organize your documents in one place
           </p>
         </div>
-        <div className="relative">
-          <input
-            type="file"
-            id="file-upload"
-            className="hidden"
-            multiple
-            accept=".pdf,.docx,.txt"
-            onChange={handleFileUpload}
-          />
-          <Button asChild>
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Files
-            </label>
-          </Button>
-        </div>
+        <Upload onFilesUpload={handleFileUpload} />
       </div>
 
       <Card>
