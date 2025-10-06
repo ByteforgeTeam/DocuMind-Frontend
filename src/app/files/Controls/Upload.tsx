@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,50 @@ export function Upload({ onFilesUpload }: UploadProps) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/document/`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (data, file) => {
+      const fileExtension = file.name.split(".").pop()?.toUpperCase();
+      const fileType = ["PDF", "DOCX", "TXT"].includes(fileExtension || "")
+        ? (fileExtension as "PDF" | "DOCX" | "TXT")
+        : "TXT";
+
+      const newFile: FileData = {
+        id: data.id || Date.now().toString(),
+        name: file.name,
+        type: fileType,
+        size: formatFileSize(file.size),
+        uploadedDate: new Date().toISOString().split("T")[0],
+      };
+
+      onFilesUpload([newFile]);
+      toast.success("File uploaded successfully");
+      setSelectedFiles([]);
+      setIsUploadModalOpen(false);
+    },
+    onError: (error: Error) => {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Failed to upload file");
+    },
+  });
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
   }, []);
@@ -41,7 +86,7 @@ export function Upload({ onFilesUpload }: UploadProps) {
         [".docx"],
       "text/plain": [".txt"],
     },
-    multiple: true,
+    multiple: false,
   });
 
   const formatFileSize = (bytes: number): string => {
@@ -72,30 +117,7 @@ export function Upload({ onFilesUpload }: UploadProps) {
 
   const handleUpload = () => {
     if (selectedFiles.length > 0) {
-      const newFiles: FileData[] = selectedFiles.map((file) => {
-        const fileExtension = file.name.split(".").pop()?.toUpperCase();
-        const fileType = ["PDF", "DOCX", "TXT"].includes(fileExtension || "")
-          ? (fileExtension as "PDF" | "DOCX" | "TXT")
-          : "TXT";
-
-        return {
-          id:
-            Date.now().toString() + Math.random().toString(36).substring(2, 11),
-          name: file.name,
-          type: fileType,
-          size: formatFileSize(file.size),
-          uploadedDate: new Date().toISOString().split("T")[0],
-        };
-      });
-
-      onFilesUpload(newFiles);
-      toast.success(
-        `Successfully uploaded ${selectedFiles.length} file${
-          selectedFiles.length !== 1 ? "s" : ""
-        }`
-      );
-      setSelectedFiles([]);
-      setIsUploadModalOpen(false);
+      uploadMutation.mutate(selectedFiles[0]);
     }
   };
 
@@ -188,9 +210,11 @@ export function Upload({ onFilesUpload }: UploadProps) {
               Cancel
             </Button>
             {selectedFiles.length > 0 && (
-              <Button onClick={handleUpload}>
-                Upload {selectedFiles.length} file
-                {selectedFiles.length !== 1 ? "s" : ""}
+              <Button
+                onClick={handleUpload}
+                disabled={uploadMutation.isPending}
+              >
+                {uploadMutation.isPending ? "Uploading..." : "Upload file"}
               </Button>
             )}
           </div>
