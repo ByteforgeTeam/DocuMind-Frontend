@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
   FileText,
   File,
 } from "lucide-react";
+import api from "@/utils/api"; // pastikan path ini sesuai file api.tsx kamu
 import { Upload } from "./Controls/Upload";
 
 const FilePreview = dynamic(
@@ -37,11 +38,17 @@ const FilePreview = dynamic(
   { ssr: false }
 );
 
+interface DocumentResponse {
+  id: number;
+  filename: string;
+  uploaded_at: string;
+}
+
 interface FileData {
-  id: string;
+  id: number;
   name: string;
-  type: "PDF" | "DOCX" | "TXT";
-  size: string;
+  type: string;
+  size?: string;
   uploadedDate: string;
   url?: string;
 }
@@ -50,43 +57,37 @@ export default function FilesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [previewFile, setPreviewFile] = useState<FileData | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [files, setFiles] = useState<FileData[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const [files, setFiles] = useState<FileData[]>([
-    {
-      id: "1",
-      name: "sample-pdf-file.pdf",
-      type: "PDF",
-      size: "18 KB",
-      uploadedDate: "2025-10-03",
-      url: "/example-file/sample-pdf-file.pdf",
-    },
-    {
-      id: "2",
-      name: "sample-docx-file.docx",
-      type: "DOCX",
-      size: "1.3 MB",
-      uploadedDate: "2025-10-03",
-      url: "/example-file/sample-docx-file.docx",
-    },
-    {
-      id: "3",
-      name: "sample-txt-file.txt",
-      type: "TXT",
-      size: "607 B",
-      uploadedDate: "2025-10-03",
-      url: "/example-file/sample-txt-file.txt",
-    },
-  ]);
+  // 🔹 Fetch data dari backend
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("document/").json<DocumentResponse[]>();
+        const formatted: FileData[] = res.map((doc) => ({
+          id: doc.id,
+          name: doc.filename,
+          type: doc.filename.split(".").pop()?.toUpperCase() || "UNKNOWN",
+          uploadedDate: new Date(doc.uploaded_at).toLocaleDateString(),
+        }));
+        setFiles(formatted);
+      } catch (error) {
+        console.error("Error fetching documents:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
 
   const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleFileUpload = (newFiles: FileData[]) => {
-    setFiles((prev) => [...prev, ...newFiles]);
-  };
-
-  const handleViewDetails = (fileId: string) => {
+  const handleViewDetails = (fileId: number) => {
     const file = files.find((f) => f.id === fileId);
     if (file) {
       setPreviewFile(file);
@@ -94,8 +95,13 @@ export default function FilesPage() {
     }
   };
 
-  const handleDelete = (fileId: string) => {
-    setFiles((prev) => prev.filter((file) => file.id !== fileId));
+  const handleDelete = async (fileId: number) => {
+    try {
+      await api.delete(`document/${fileId}`);
+      setFiles((prev) => prev.filter((file) => file.id !== fileId));
+    } catch (err) {
+      console.error("Failed to delete document", err);
+    }
   };
 
   const getFileTypeColor = (type: string) => {
@@ -133,7 +139,7 @@ export default function FilesPage() {
             Upload, manage, and organize your documents in one place
           </p>
         </div>
-        <Upload onFilesUpload={handleFileUpload} />
+        <Upload onFilesUpload={() => {}} />
       </div>
 
       <Card>
@@ -149,75 +155,81 @@ export default function FilesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>File Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Uploaded Date</TableHead>
-                <TableHead className="w-[50px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredFiles.length === 0 ? (
+          {loading ? (
+            <p className="text-center py-6 text-muted-foreground">
+              Loading documents...
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    {searchTerm
-                      ? "No files found matching your search."
-                      : "No files uploaded yet."}
-                  </TableCell>
+                  <TableHead>File Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Uploaded Date</TableHead>
+                  <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>
-              ) : (
-                filteredFiles.map((file) => (
-                  <TableRow key={file.id}>
-                    <TableCell className="font-medium">{file.name}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center gap-1 w-fit ${getFileTypeColor(
-                          file.type
-                        )}`}
-                      >
-                        {getFileTypeIcon(file.type)}
-                        {file.type}
-                      </span>
-                    </TableCell>
-                    <TableCell>{file.size}</TableCell>
-                    <TableCell>{file.uploadedDate}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="cursor-pointer"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleViewDetails(file.id)}
-                            className="cursor-pointer"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(file.id)}
-                            className="text-destructive cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2 text-red-500" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+              </TableHeader>
+              <TableBody>
+                {filteredFiles.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      {searchTerm
+                        ? "No files found matching your search."
+                        : "No files available."}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredFiles.map((file) => (
+                    <TableRow key={file.id}>
+                      <TableCell className="font-medium">
+                        {file.name}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center gap-1 w-fit ${getFileTypeColor(
+                            file.type
+                          )}`}
+                        >
+                          {getFileTypeIcon(file.type)}
+                          {file.type}
+                        </span>
+                      </TableCell>
+                      <TableCell>{file.uploadedDate}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="cursor-pointer"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleViewDetails(file.id)}
+                              className="cursor-pointer"
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(file.id)}
+                              className="text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2 text-red-500" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
