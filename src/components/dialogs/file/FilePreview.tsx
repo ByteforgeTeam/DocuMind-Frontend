@@ -15,10 +15,10 @@ import "react-pdf/dist/Page/TextLayer.css";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface FileData {
-  id: string;
+  id: number;
   name: string;
-  type: "PDF" | "DOCX" | "TXT";
-  size: string;
+  type: string;
+  size?: string;
   uploadedDate: string;
   url?: string;
 }
