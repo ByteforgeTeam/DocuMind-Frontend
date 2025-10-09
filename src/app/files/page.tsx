@@ -27,7 +27,7 @@ import {
   FileText,
   File,
 } from "lucide-react";
-import api from "@/utils/api"; // pastikan path ini sesuai file api.tsx kamu
+import api from "@/utils/api";
 import { Upload } from "./Controls/Upload";
 
 const FilePreview = dynamic(
@@ -60,7 +60,6 @@ export default function FilesPage() {
   const [files, setFiles] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Fetch data dari backend
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
