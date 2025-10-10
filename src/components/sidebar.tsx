@@ -128,52 +128,58 @@ export function Sidebar() {
               {isLoading ? (
                 <p className="px-2 text-sm text-muted-foreground">Loading...</p>
               ) : conversations && conversations.length > 0 ? (
-                conversations.map((chat) => {
-                  const isActive = pathname === `/chat/${chat.id}`;
+                conversations
+                  .sort(
+                    (a, b) =>
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime()
+                  )
+                  .map((chat) => {
+                    const isActive = pathname === `/chat/${chat.id}`;
 
-                  return (
-                    <div key={chat.id} className="relative group">
-                      <Button
-                        variant={isActive ? "default" : "ghost"}
-                        className={cn(
-                          "w-full justify-start pr-8",
-                          isActive && "bg-primary text-primary-foreground"
-                        )}
-                        asChild
-                      >
-                        <Link href={`/chat/${chat.id}`}>
-                          <span className="truncate">{chat.title}</span>
-                        </Link>
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                              "absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity",
-                              isActive
-                                ? "text-primary-foreground hover:bg-primary-foreground/20"
-                                : "text-muted-foreground hover:bg-muted"
-                            )}
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            <MoreVertical className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-                            onClick={() => handleDeleteClick(chat.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  );
-                })
+                    return (
+                      <div key={chat.id} className="relative group">
+                        <Button
+                          variant={isActive ? "default" : "ghost"}
+                          className={cn(
+                            "w-full justify-start pr-8",
+                            isActive && "bg-primary text-primary-foreground"
+                          )}
+                          asChild
+                        >
+                          <Link href={`/chat/${chat.id}`}>
+                            <span className="truncate">{chat.title}</span>
+                          </Link>
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                "absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                                isActive
+                                  ? "text-primary-foreground hover:bg-primary-foreground/20"
+                                  : "text-muted-foreground hover:bg-muted"
+                              )}
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              <MoreVertical className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                              onClick={() => handleDeleteClick(chat.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    );
+                  })
               ) : (
                 <p className="px-2 text-sm text-muted-foreground">
                   No chats yet
