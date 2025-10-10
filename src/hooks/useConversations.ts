@@ -49,3 +49,16 @@ export function useCreateConversation() {
     },
   });
 }
+
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (conversationId: string | number) => {
+      await api.delete(`conversation/${conversationId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
