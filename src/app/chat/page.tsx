@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send, Bot, User, FileText } from "lucide-react";
+import { Bot, User, FileText } from "lucide-react";
 import dynamic from "next/dynamic";
+import ChatInput from "./components/ChatInput";
 import {
   Sheet,
   SheetContent,
@@ -264,27 +263,12 @@ export default function ChatPage() {
         </div>
 
         {/* Chat Input */}
-        <div className="border-t bg-background px-4 py-2">
-          <form
-            onSubmit={handleSubmit}
-            className="mx-auto flex max-w-3xl gap-2"
-          >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question about your documents..."
-              disabled={isLoading}
-              className="flex-1"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!input.trim() || isLoading}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </div>
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Document Preview Sheet */}
