@@ -5,13 +5,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FileText, Check } from "lucide-react";
+import { FileText, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 
 interface File {
-  id: string;
-  name: string;
-  uploadedAt: string;
+  id: number;
+  filename: string;
+  uploaded_at: string;
 }
 
 interface FileSelectionModalProps {
@@ -21,14 +22,13 @@ interface FileSelectionModalProps {
   onToggleFile: (fileId: string) => void;
 }
 
-// Hardcoded files list
-const availableFiles: File[] = [
-  { id: "1", name: "document-1.pdf", uploadedAt: "2024-01-15" },
-  { id: "2", name: "research-paper.pdf", uploadedAt: "2024-01-14" },
-  { id: "3", name: "meeting-notes.pdf", uploadedAt: "2024-01-13" },
-  { id: "4", name: "project-proposal.pdf", uploadedAt: "2024-01-12" },
-  { id: "5", name: "technical-specs.pdf", uploadedAt: "2024-01-11" },
-];
+const fetchDocuments = async (): Promise<File[]> => {
+  const response = await fetch("http://localhost:8000/document/");
+  if (!response.ok) {
+    throw new Error("Failed to fetch documents");
+  }
+  return response.json();
+};
 
 export default function FileSelectionModal({
   open,
@@ -36,6 +36,15 @@ export default function FileSelectionModal({
   selectedFileIds,
   onToggleFile,
 }: FileSelectionModalProps) {
+  const {
+    data: availableFiles,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["documents"],
+    queryFn: fetchDocuments,
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -47,35 +56,54 @@ export default function FileSelectionModal({
         </DialogHeader>
 
         <div className="mt-4 max-h-[400px] overflow-y-auto">
-          <div className="space-y-2">
-            {availableFiles.map((file) => {
-              const isSelected = selectedFileIds.includes(file.id);
-              return (
-                <button
-                  key={file.id}
-                  onClick={() => onToggleFile(file.id)}
-                  className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors hover:bg-muted ${
-                    isSelected ? "border-primary bg-muted" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Uploaded on {file.uploadedAt}
-                      </p>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-sm text-destructive">
+                Failed to load documents. Please try again.
+              </p>
+            </div>
+          ) : !availableFiles || availableFiles.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-sm text-muted-foreground">
+                No documents uploaded yet.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {availableFiles.map((file) => {
+                const isSelected = selectedFileIds.includes(file.id.toString());
+                return (
+                  <button
+                    key={file.id}
+                    onClick={() => onToggleFile(file.id.toString())}
+                    className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors hover:bg-muted ${
+                      isSelected ? "border-primary bg-muted" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{file.filename}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Uploaded on{" "}
+                          {new Date(file.uploaded_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {isSelected && (
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-                      <Check className="h-4 w-4 text-primary-foreground" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                    {isSelected && (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                        <Check className="h-4 w-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="mt-4 flex justify-end gap-2">

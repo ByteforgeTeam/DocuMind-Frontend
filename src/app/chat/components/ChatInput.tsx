@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Send, Files, X, FileText } from "lucide-react";
 import FileSelectionModal from "./FileSelectionModal";
+import { useQuery } from "@tanstack/react-query";
 
 interface ChatInputProps {
   input: string;
@@ -17,14 +18,19 @@ interface ChatInputProps {
   isLoading: boolean;
 }
 
-// Hardcoded selected files for now
-const availableFiles = [
-  { id: "1", name: "document-1.pdf" },
-  { id: "2", name: "research-paper.pdf" },
-  { id: "3", name: "meeting-notes.pdf" },
-  { id: "4", name: "project-proposal.pdf" },
-  { id: "5", name: "technical-specs.pdf" },
-];
+interface Document {
+  id: number;
+  filename: string;
+  uploaded_at: string;
+}
+
+const fetchDocuments = async (): Promise<Document[]> => {
+  const response = await fetch("http://localhost:8000/document/");
+  if (!response.ok) {
+    throw new Error("Failed to fetch documents");
+  }
+  return response.json();
+};
 
 export default function ChatInput({
   input,
@@ -33,11 +39,17 @@ export default function ChatInput({
   isLoading,
 }: ChatInputProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedFileIds, setSelectedFileIds] = useState<string[]>(["1", "2"]);
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
-  const selectedFiles = availableFiles.filter((file) =>
-    selectedFileIds.includes(file.id)
-  );
+  const { data: availableFiles } = useQuery({
+    queryKey: ["documents"],
+    queryFn: fetchDocuments,
+  });
+
+  const selectedFiles =
+    availableFiles?.filter((file) =>
+      selectedFileIds.includes(file.id.toString())
+    ) || [];
 
   const handleToggleFile = (fileId: string) => {
     setSelectedFileIds((prev) =>
@@ -50,6 +62,7 @@ export default function ChatInput({
   const handleRemoveFile = (fileId: string) => {
     setSelectedFileIds((prev) => prev.filter((id) => id !== fileId));
   };
+
   return (
     <div className="border-t bg-background">
       {/* Selected Files Display */}
@@ -63,11 +76,11 @@ export default function ChatInput({
                   className="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-sm"
                 >
                   <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-muted-foreground">{file.name}</span>
+                  <span className="text-muted-foreground">{file.filename}</span>
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground"
-                    onClick={() => handleRemoveFile(file.id)}
+                    onClick={() => handleRemoveFile(file.id.toString())}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
