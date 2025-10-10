@@ -14,7 +14,7 @@ const sidebarItems = [
     icon: Home,
   },
   {
-    title: "Files",
+    title: "Upload Files",
     href: "/files",
     icon: Files,
   },
