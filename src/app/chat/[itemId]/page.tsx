@@ -3,11 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Bot, User } from "lucide-react";
 import { useParams } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   useConversationDetail,
   useSendMessage,
 } from "@/hooks/useConversations";
 import ChatInput from "../components/ChatInput";
+import "./css/markdown.css";
 
 interface Citation {
   id: string;
@@ -127,9 +130,17 @@ export default function ChatPage() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">
-                    {message.content}
-                  </p>
+                  {message.role === "assistant" ? (
+                    <div className="text-sm markdown-content">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                  )}
                   <span className="mt-1 block text-xs opacity-70">
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
