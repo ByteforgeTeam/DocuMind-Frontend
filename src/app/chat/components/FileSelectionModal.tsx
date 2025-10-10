@@ -7,13 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { FileText, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-
-interface File {
-  id: number;
-  filename: string;
-  uploaded_at: string;
-}
+import { useDocuments } from "@/hooks/useDocuments";
 
 interface FileSelectionModalProps {
   open: boolean;
@@ -22,28 +16,13 @@ interface FileSelectionModalProps {
   onToggleFile: (fileId: string) => void;
 }
 
-const fetchDocuments = async (): Promise<File[]> => {
-  const response = await fetch("http://localhost:8000/document/");
-  if (!response.ok) {
-    throw new Error("Failed to fetch documents");
-  }
-  return response.json();
-};
-
 export default function FileSelectionModal({
   open,
   onOpenChange,
   selectedFileIds,
   onToggleFile,
 }: FileSelectionModalProps) {
-  const {
-    data: availableFiles,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["documents"],
-    queryFn: fetchDocuments,
-  });
+  const { data: availableFiles, isLoading, error } = useDocuments();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

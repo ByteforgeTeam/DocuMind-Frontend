@@ -9,26 +9,12 @@ import {
 } from "@/components/ui/tooltip";
 import { Send, Files, X, FileText } from "lucide-react";
 import FileSelectionModal from "./FileSelectionModal";
-import { useQuery } from "@tanstack/react-query";
+import { useDocuments } from "@/hooks/useDocuments";
 
 interface ChatInputProps {
   onSendMessage: (message: string, selectedFileIds: string[]) => void;
   isLoading: boolean;
 }
-
-interface Document {
-  id: number;
-  filename: string;
-  uploaded_at: string;
-}
-
-const fetchDocuments = async (): Promise<Document[]> => {
-  const response = await fetch("http://localhost:8000/document/");
-  if (!response.ok) {
-    throw new Error("Failed to fetch documents");
-  }
-  return response.json();
-};
 
 export default function ChatInput({
   onSendMessage,
@@ -38,10 +24,7 @@ export default function ChatInput({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
-  const { data: availableFiles } = useQuery({
-    queryKey: ["documents"],
-    queryFn: fetchDocuments,
-  });
+  const { data: availableFiles } = useDocuments();
 
   const selectedFiles =
     availableFiles?.filter((file) =>
