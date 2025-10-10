@@ -6,6 +6,7 @@ import { Files, Brain, Home, PencilIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useConversations } from "@/hooks/useConversations";
 
 const sidebarItems = [
   {
@@ -25,26 +26,9 @@ const sidebarItems = [
   },
 ];
 
-const chatsList = [
-  {
-    id: "1",
-    title: "How to use React hooks?",
-    href: "/chat/1",
-  },
-  {
-    id: "2",
-    title: "Next.js best practices",
-    href: "/chat/2",
-  },
-  {
-    id: "3",
-    title: "TypeScript tips and tricks",
-    href: "/chat/3",
-  },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: conversations, isLoading } = useConversations();
 
   return (
     <div className="flex h-full w-64 flex-col bg-muted/40 border-r">
@@ -87,25 +71,31 @@ export function Sidebar() {
             Chats
           </h2>
           <div className="space-y-1">
-            {chatsList.map((chat) => {
-              const isActive = pathname === chat.href;
+            {isLoading ? (
+              <p className="px-2 text-sm text-muted-foreground">Loading...</p>
+            ) : conversations && conversations.length > 0 ? (
+              conversations.map((chat) => {
+                const isActive = pathname === `/chat/${chat.id}`;
 
-              return (
-                <Button
-                  key={chat.id}
-                  variant={isActive ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start",
-                    isActive && "bg-primary text-primary-foreground"
-                  )}
-                  asChild
-                >
-                  <Link href={chat.href}>
-                    <span className="truncate">{chat.title}</span>
-                  </Link>
-                </Button>
-              );
-            })}
+                return (
+                  <Button
+                    key={chat.id}
+                    variant={isActive ? "default" : "ghost"}
+                    className={cn(
+                      "w-full justify-start",
+                      isActive && "bg-primary text-primary-foreground"
+                    )}
+                    asChild
+                  >
+                    <Link href={`/chat/${chat.id}`}>
+                      <span className="truncate">{chat.title}</span>
+                    </Link>
+                  </Button>
+                );
+              })
+            ) : (
+              <p className="px-2 text-sm text-muted-foreground">No chats yet</p>
+            )}
           </div>
         </div>
       </nav>
