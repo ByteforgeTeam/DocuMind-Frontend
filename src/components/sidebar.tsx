@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Files, MessageCircle, Brain, Home } from "lucide-react";
+import { Files, Brain, Home, PencilIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -19,9 +19,9 @@ const sidebarItems = [
     icon: Files,
   },
   {
-    title: "Chat",
+    title: "New Chat",
     href: "/chat",
-    icon: MessageCircle,
+    icon: PencilIcon,
   },
 ];
 
