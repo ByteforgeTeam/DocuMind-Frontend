@@ -3,7 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Bot, User } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useConversationDetail } from "@/hooks/useConversations";
+import {
+  useConversationDetail,
+  useSendMessage,
+} from "@/hooks/useConversations";
 import ChatInput from "../components/ChatInput";
 
 interface Citation {
@@ -37,8 +40,9 @@ export default function ChatPage() {
   const { data: conversationData, isLoading } =
     useConversationDetail(conversationId);
 
+  const { mutateAsync: sendMessage, isPending: isSending } = useSendMessage();
+
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isSending, setIsSending] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -51,20 +55,15 @@ export default function ChatPage() {
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, userMessage]);
-    setIsSending(true);
 
-    // TODO: Implement API call to send message
-    // For now, just simulate response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "This is a placeholder response.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsSending(false);
-    }, 1000);
+    try {
+      await sendMessage({
+        conversation_id: Number(conversationId),
+        content: message,
+      });
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
   };
 
   // Transform API messages to component Message format
@@ -145,7 +144,7 @@ export default function ChatPage() {
                 )}
               </div>
             ))}
-            {isLoading && (
+            {(isLoading || isSending) && (
               <div className="flex gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary">
                   <Bot className="h-5 w-5 text-primary-foreground" />

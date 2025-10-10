@@ -62,3 +62,34 @@ export function useDeleteConversation() {
     },
   });
 }
+
+export function useSendMessage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      conversation_id,
+      content,
+    }: {
+      conversation_id: number;
+      content: string;
+    }) => {
+      const response = await api
+        .post("conversation/message", {
+          json: { conversation_id, content },
+        })
+        .json();
+
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate both string and number variants
+      queryClient.invalidateQueries({
+        queryKey: ["conversation", String(variables.conversation_id)],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["conversation", variables.conversation_id],
+      });
+    },
+  });
+}
