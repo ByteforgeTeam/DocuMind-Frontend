@@ -40,7 +40,8 @@ export function useCreateConversation() {
         .post("conversation/", {
           json: { initial_message, document_ids },
         })
-        .json<ConversationDetail>();
+        .json<Conversation>();
+
       return response;
     },
     onSuccess: () => {

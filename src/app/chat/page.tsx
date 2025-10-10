@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useCreateConversation } from "@/hooks/useConversations";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import ChatInput from "./components/ChatInput";
 
 export default function ChatPage() {
+  const router = useRouter();
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([]);
   const { data: documents, isLoading: isLoadingDocuments } = useDocuments();
   const { mutate: createConversation, isPending } = useCreateConversation();
@@ -26,20 +28,17 @@ export default function ChatPage() {
       return;
     }
 
-    createConversation(
-      {
-        initial_message: message,
-        document_ids: selectedDocuments,
+    const body = {
+      initial_message: message,
+      document_ids: selectedDocuments,
+    };
+
+    createConversation(body, {
+      onSuccess: (data) => {
+        toast.success("Conversation created successfully!");
+        router.push(`/chat/${data.id}`);
       },
-      {
-        onSuccess: () => {
-          toast.success("Conversation created successfully!");
-        },
-        onError: () => {
-          toast.error("Failed to create conversation");
-        },
-      }
-    );
+    });
   };
 
   return (
