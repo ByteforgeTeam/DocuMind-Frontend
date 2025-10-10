@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -7,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Send, Files, X, FileText } from "lucide-react";
+import FileSelectionModal from "./FileSelectionModal";
 
 interface ChatInputProps {
   input: string;
@@ -16,9 +18,12 @@ interface ChatInputProps {
 }
 
 // Hardcoded selected files for now
-const selectedFiles = [
+const availableFiles = [
   { id: "1", name: "document-1.pdf" },
   { id: "2", name: "research-paper.pdf" },
+  { id: "3", name: "meeting-notes.pdf" },
+  { id: "4", name: "project-proposal.pdf" },
+  { id: "5", name: "technical-specs.pdf" },
 ];
 
 export default function ChatInput({
@@ -27,6 +32,24 @@ export default function ChatInput({
   onSubmit,
   isLoading,
 }: ChatInputProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>(["1", "2"]);
+
+  const selectedFiles = availableFiles.filter((file) =>
+    selectedFileIds.includes(file.id)
+  );
+
+  const handleToggleFile = (fileId: string) => {
+    setSelectedFileIds((prev) =>
+      prev.includes(fileId)
+        ? prev.filter((id) => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+
+  const handleRemoveFile = (fileId: string) => {
+    setSelectedFileIds((prev) => prev.filter((id) => id !== fileId));
+  };
   return (
     <div className="border-t bg-background">
       {/* Selected Files Display */}
@@ -44,9 +67,7 @@ export default function ChatInput({
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      // TODO: Remove file from selection
-                    }}
+                    onClick={() => handleRemoveFile(file.id)}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -68,9 +89,7 @@ export default function ChatInput({
                   size="icon"
                   variant="outline"
                   disabled={isLoading}
-                  onClick={() => {
-                    // TODO: Implement file selection
-                  }}
+                  onClick={() => setIsModalOpen(true)}
                 >
                   <Files className="h-4 w-4" />
                 </Button>
@@ -96,6 +115,13 @@ export default function ChatInput({
           </Button>
         </form>
       </div>
+
+      <FileSelectionModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        selectedFileIds={selectedFileIds}
+        onToggleFile={handleToggleFile}
+      />
     </div>
   );
 }
