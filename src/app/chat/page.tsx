@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useCreateConversation } from "@/hooks/useConversations";
 import { toast } from "sonner";
 
 import ChatInput from "./components/ChatInput";
 
 export default function ChatPage() {
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([]);
   const { data: documents, isLoading: isLoadingDocuments } = useDocuments();
+  const { mutate: createConversation, isPending } = useCreateConversation();
 
   const handleDocumentToggle = (docId: number) => {
     setSelectedDocuments((prev) =>
@@ -19,12 +20,26 @@ export default function ChatPage() {
     );
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (message: string) => {
     if (selectedDocuments.length === 0) {
       toast.error("Please select a document first");
       return;
     }
-    //
+
+    createConversation(
+      {
+        initial_message: message,
+        document_ids: selectedDocuments,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Conversation created successfully!");
+        },
+        onError: () => {
+          toast.error("Failed to create conversation");
+        },
+      }
+    );
   };
 
   return (
@@ -99,7 +114,7 @@ export default function ChatPage() {
           </div>
 
           {/* Chat Input */}
-          <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+          <ChatInput onSendMessage={handleSendMessage} isLoading={isPending} />
         </div>
       </div>
     </>

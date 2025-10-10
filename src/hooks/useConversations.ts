@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/utils/api";
 import { Conversation, ConversationDetail } from "@/types/conversation";
 
@@ -22,5 +22,29 @@ export function useConversationDetail(conversationId: string | number) {
       return response;
     },
     enabled: !!conversationId,
+  });
+}
+
+export function useCreateConversation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      initial_message,
+      document_ids,
+    }: {
+      initial_message: string;
+      document_ids: number[];
+    }) => {
+      const response = await api
+        .post("conversation/", {
+          json: { initial_message, document_ids },
+        })
+        .json<ConversationDetail>();
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
   });
 }
