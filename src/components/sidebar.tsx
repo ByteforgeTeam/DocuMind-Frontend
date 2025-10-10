@@ -25,6 +25,24 @@ const sidebarItems = [
   },
 ];
 
+const chatsList = [
+  {
+    id: "1",
+    title: "How to use React hooks?",
+    href: "/chat/1",
+  },
+  {
+    id: "2",
+    title: "Next.js best practices",
+    href: "/chat/2",
+  },
+  {
+    id: "3",
+    title: "TypeScript tips and tricks",
+    href: "/chat/3",
+  },
+];
+
 export function Sidebar() {
   const pathname = usePathname();
 
@@ -60,6 +78,35 @@ export function Sidebar() {
               </Button>
             );
           })}
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="space-y-2">
+          <h2 className="px-2 text-sm font-semibold text-muted-foreground">
+            Chats
+          </h2>
+          <div className="space-y-1">
+            {chatsList.map((chat) => {
+              const isActive = pathname === chat.href;
+
+              return (
+                <Button
+                  key={chat.id}
+                  variant={isActive ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start",
+                    isActive && "bg-primary text-primary-foreground"
+                  )}
+                  asChild
+                >
+                  <Link href={chat.href}>
+                    <span className="truncate">{chat.title}</span>
+                  </Link>
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </div>
