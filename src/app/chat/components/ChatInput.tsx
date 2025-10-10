@@ -12,9 +12,7 @@ import FileSelectionModal from "./FileSelectionModal";
 import { useQuery } from "@tanstack/react-query";
 
 interface ChatInputProps {
-  input: string;
-  setInput: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSendMessage: (message: string, selectedFileIds: string[]) => void;
   isLoading: boolean;
 }
 
@@ -33,11 +31,10 @@ const fetchDocuments = async (): Promise<Document[]> => {
 };
 
 export default function ChatInput({
-  input,
-  setInput,
-  onSubmit,
+  onSendMessage,
   isLoading,
 }: ChatInputProps) {
+  const [input, setInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
@@ -61,6 +58,14 @@ export default function ChatInput({
 
   const handleRemoveFile = (fileId: string) => {
     setSelectedFileIds((prev) => prev.filter((id) => id !== fileId));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    onSendMessage(input.trim(), selectedFileIds);
+    setInput("");
   };
 
   return (
@@ -93,7 +98,7 @@ export default function ChatInput({
 
       {/* Input Form */}
       <div className="px-4 py-2">
-        <form onSubmit={onSubmit} className="mx-auto flex max-w-3xl gap-2">
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

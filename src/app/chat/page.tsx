@@ -46,7 +46,6 @@ interface Message {
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(
     null
@@ -58,22 +57,24 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
+  const handleSendMessage = async (
+    message: string,
+    selectedFileIds: string[]
+  ) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: message,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
     setIsLoading(true);
 
     // TODO: Replace with actual API call
+    // Use selectedFileIds to send to backend
+    console.log("Selected file IDs:", selectedFileIds);
+
     setTimeout(() => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -263,12 +264,7 @@ export default function ChatPage() {
         </div>
 
         {/* Chat Input */}
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-        />
+        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
       </div>
 
       {/* Document Preview Sheet */}
