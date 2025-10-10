@@ -35,7 +35,6 @@ export default function ChatPage() {
 
     createConversation(body, {
       onSuccess: (data) => {
-        toast.success("Conversation created successfully!");
         router.push(`/chat/${data.id}`);
       },
     });
@@ -116,6 +115,73 @@ export default function ChatPage() {
           <ChatInput onSendMessage={handleSendMessage} isLoading={isPending} />
         </div>
       </div>
+
+      {/* Loading Overlay */}
+      {isPending && (
+        <div className="fixed inset-0 bg-background/50 backdrop-blur-[2px] z-50 flex items-center justify-center">
+          <div className="bg-card rounded-xl shadow-2xl p-10 flex flex-col items-center gap-6 border border-primary/20 w-full max-w-md mx-4">
+            <div className="w-full space-y-6">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="relative w-16 h-16">
+                  <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
+                  <div className="absolute inset-0 rounded-full bg-primary/10 flex items-center justify-center">
+                    <svg
+                      className="w-8 h-8 text-primary"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text */}
+              <div className="text-center space-y-2">
+                <p className="text-lg font-semibold">Creating Conversation</p>
+                <p className="text-sm text-muted-foreground">
+                  Please wait a moment...
+                </p>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full space-y-2">
+                <div className="h-2 bg-primary/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary/50 via-primary to-primary/50 rounded-full"
+                    style={{
+                      animation: "progress 1.5s ease-in-out infinite",
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <style jsx>{`
+        @keyframes progress {
+          0% {
+            width: 0%;
+            margin-left: 0%;
+          }
+          50% {
+            width: 75%;
+            margin-left: 12.5%;
+          }
+          100% {
+            width: 0%;
+            margin-left: 100%;
+          }
+        }
+      `}</style>
     </>
   );
 }
