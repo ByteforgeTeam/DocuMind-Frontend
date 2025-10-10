@@ -5,13 +5,20 @@ import { useRouter } from "next/navigation";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useCreateConversation } from "@/hooks/useConversations";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
 
 import ChatInput from "./components/ChatInput";
+import { Upload } from "@/app/files/Controls/Upload";
 
 export default function ChatPage() {
   const router = useRouter();
   const [selectedDocuments, setSelectedDocuments] = useState<number[]>([]);
-  const { data: documents, isLoading: isLoadingDocuments } = useDocuments();
+  const {
+    data: documents,
+    isLoading: isLoadingDocuments,
+    refetch,
+  } = useDocuments();
+
   const { mutate: createConversation, isPending } = useCreateConversation();
 
   const handleDocumentToggle = (docId: number) => {
@@ -40,6 +47,10 @@ export default function ChatPage() {
     });
   };
 
+  const handleUploadSuccess = () => {
+    refetch();
+  };
+
   return (
     <>
       <div className="flex flex-1 flex-col h-full items-center justify-center p-8">
@@ -54,7 +65,10 @@ export default function ChatPage() {
 
           {/* Document Selection */}
           <div className="space-y-4">
-            <label className="text-sm font-medium">Select Documents</label>
+            {/* Label hanya tampil jika ada dokumen atau loading */}
+            {(isLoadingDocuments || (documents && documents.length > 0)) && (
+              <label className="text-sm font-medium">Select Documents</label>
+            )}
             {isLoadingDocuments ? (
               <div className="text-center py-4 text-muted-foreground">
                 Loading documents...
@@ -105,8 +119,25 @@ export default function ChatPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No documents available. Please upload documents first.
+              <div className="border-2 border-dashed border-border rounded-xl p-12 bg-muted/30">
+                <div className="text-center space-y-6">
+                  {/* Icon/Ilustrasi */}
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-primary/5 rounded-full blur-xl"></div>
+                      <FileText className="relative w-20 h-20 text-muted-foreground/50" />
+                    </div>
+                  </div>
+                  {/* Pesan */}
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">No Documents Yet</h3>
+                    <p className="text-muted-foreground">
+                      Upload a document first to start a conversation
+                    </p>
+                  </div>
+                  {/* Upload Button */}
+                  <Upload onFilesUpload={handleUploadSuccess} />
+                </div>
               </div>
             )}
           </div>

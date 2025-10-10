@@ -180,9 +180,7 @@ export default function FilesPage() {
                 ) : (
                   filteredFiles.map((file) => (
                     <TableRow key={file.id}>
-                      <TableCell className="font-medium">
-                        {file.name}
-                      </TableCell>
+                      <TableCell className="font-medium">{file.name}</TableCell>
                       <TableCell>
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full border flex items-center gap-1 w-fit ${getFileTypeColor(
