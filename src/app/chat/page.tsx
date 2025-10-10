@@ -67,11 +67,50 @@ export default function ChatPage() {
           <div className="space-y-4">
             {/* Label hanya tampil jika ada dokumen atau loading */}
             {(isLoadingDocuments || (documents && documents.length > 0)) && (
-              <label className="text-sm font-medium">Select Documents</label>
+              <p className="text-sm font-medium mb-2">Select Documents</p>
             )}
             {isLoadingDocuments ? (
-              <div className="text-center py-4 text-muted-foreground">
-                Loading documents...
+              <div className="space-y-2">
+                {/* Skeleton Loading */}
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-full p-4 rounded-lg border-2 border-border bg-muted/30 animate-pulse"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded border-2 border-muted bg-muted"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                        <div className="h-3 bg-muted rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="text-center pt-2">
+                  <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Loading documents...
+                  </p>
+                </div>
               </div>
             ) : documents && documents.length > 0 ? (
               <div className="max-h-80 overflow-y-auto pr-2 space-y-2">
@@ -142,8 +181,13 @@ export default function ChatPage() {
             )}
           </div>
 
-          {/* Chat Input */}
-          <ChatInput onSendMessage={handleSendMessage} isLoading={isPending} />
+          {/* Chat Input - hanya tampil jika ada dokumen dan tidak loading */}
+          {!isLoadingDocuments && documents && documents.length > 0 && (
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isLoading={isPending}
+            />
+          )}
         </div>
       </div>
 
