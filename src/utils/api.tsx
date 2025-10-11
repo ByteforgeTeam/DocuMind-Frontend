@@ -1,7 +1,7 @@
 import ky from "ky";
 
 const api = ky.create({
-  prefixUrl: "http://localhost:8000",
+  prefixUrl: process.env.NEXT_PUBLIC_API_URL,
   timeout: 10000,
 });
 
