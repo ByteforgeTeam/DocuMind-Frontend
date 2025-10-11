@@ -60,27 +60,23 @@ export default function FilesPage() {
   const [files, setFiles] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get("document/").json<DocumentResponse[]>();
-        const formatted: FileData[] = res.map((doc) => ({
-          id: doc.id,
-          name: doc.filename,
-          type: doc.filename.split(".").pop()?.toUpperCase() || "UNKNOWN",
-          uploadedDate: new Date(doc.uploaded_at).toLocaleDateString(),
-        }));
-        setFiles(formatted);
-      } catch (error) {
-        console.error("Error fetching documents:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDocuments();
-  }, []);
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("document/").json<DocumentResponse[]>();
+      const formatted: FileData[] = res.map((doc) => ({
+        id: doc.id,
+        name: doc.filename,
+        type: doc.filename.split(".").pop()?.toUpperCase() || "UNKNOWN",
+        uploadedDate: new Date(doc.uploaded_at).toLocaleDateString(),
+      }));
+      setFiles(formatted);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -129,6 +125,10 @@ export default function FilesPage() {
     }
   };
 
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start">
@@ -138,7 +138,7 @@ export default function FilesPage() {
             Upload, manage, and organize your documents in one place
           </p>
         </div>
-        <Upload onFilesUpload={() => {}} />
+        <Upload onFilesUpload={() => fetchDocuments()} />
       </div>
 
       <Card>
