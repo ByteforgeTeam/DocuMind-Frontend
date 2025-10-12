@@ -35,13 +35,10 @@ export function Upload({ onFilesUpload }: UploadProps) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/document/`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("/api/document/", {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
