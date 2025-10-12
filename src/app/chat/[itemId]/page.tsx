@@ -9,6 +9,7 @@ import {
   useConversationDetail,
   useSendMessage,
 } from "@/hooks/useConversations";
+import { useTypingEffect } from "@/hooks/useTypingEffect";
 import ChatInput from "../components/ChatInput";
 import "./css/markdown.css";
 
@@ -36,6 +37,30 @@ interface Message {
   citations?: Citation[];
 }
 
+function AssistantMessage({
+  content,
+  isTyping,
+  onTypingComplete,
+}: {
+  content: string;
+  isTyping: boolean;
+  onTypingComplete: () => void;
+}) {
+  const { displayedText } = useTypingEffect({
+    text: content,
+    speed: 25,
+    onComplete: onTypingComplete,
+  });
+
+  const textToRender = isTyping ? displayedText : content;
+
+  return (
+    <div className="text-sm markdown-content">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{textToRender}</ReactMarkdown>
+    </div>
+  );
+}
+
 export default function ChatPage() {
   const params = useParams();
   const conversationId = params.itemId as string;
@@ -46,6 +71,9 @@ export default function ChatPage() {
   const { mutateAsync: sendMessage, isPending: isSending } = useSendMessage();
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+  const previousMessageCountRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +109,25 @@ export default function ChatPage() {
           citations: undefined, // TODO: Add citations mapping if API provides it
         })
       );
+
+      // Detect new assistant message (only after initial load)
+      const currentMessageCount = transformedMessages.length;
+      const previousCount = previousMessageCountRef.current;
+
+      if (!isInitialLoadRef.current && currentMessageCount > previousCount) {
+        // Check if the newest message is from assistant
+        const newestMessage = transformedMessages[currentMessageCount - 1];
+        if (newestMessage && newestMessage.role === "assistant") {
+          setTypingMessageId(newestMessage.id);
+        }
+      }
+
+      // Mark initial load as complete after first render
+      if (isInitialLoadRef.current) {
+        isInitialLoadRef.current = false;
+      }
+
+      previousMessageCountRef.current = currentMessageCount;
       setMessages(transformedMessages);
     }
   }, [conversationData]);
@@ -131,11 +178,11 @@ export default function ChatPage() {
                   }`}
                 >
                   {message.role === "assistant" ? (
-                    <div className="text-sm markdown-content">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
+                    <AssistantMessage
+                      content={message.content}
+                      isTyping={typingMessageId === message.id}
+                      onTypingComplete={() => setTypingMessageId(null)}
+                    />
                   ) : (
                     <p className="text-sm whitespace-pre-wrap">
                       {message.content}
