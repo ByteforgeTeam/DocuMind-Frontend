@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
 // GET /api/document/[id] - Fetch single document
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/document/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${BACKEND_URL}/document/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -36,10 +37,11 @@ export async function GET(
 // DELETE /api/document/[id] - Delete document
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/document/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${BACKEND_URL}/document/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

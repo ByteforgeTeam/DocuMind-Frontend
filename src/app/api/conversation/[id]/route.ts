@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
 // GET /api/conversation/[id] - Fetch conversation detail
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/conversation/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${BACKEND_URL}/conversation/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -36,10 +37,11 @@ export async function GET(
 // DELETE /api/conversation/[id] - Delete conversation
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/conversation/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${BACKEND_URL}/conversation/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
